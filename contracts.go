@@ -62,12 +62,12 @@ type AgentType string
 
 // Client is a SkyScanner client interface
 type Client interface {
-	Create(req *CreateRequest) (*CreatePollResponse, error)
-	Poll(req *PollRequest) (*CreatePollResponse, error)
-	Locales() (*LocalesResponse, error)
-	Currencies() (*CurrenciesResponse, error)
-	Markets(locale string) (*MarketsResponse, error)
-	NearestCulture(ip string) (*NearestCultureResponse, error)
+	Create(req *CreateRequest) (*CreatePollResponse, *ErrorResponse)
+	Poll(req *PollRequest) (*CreatePollResponse, *ErrorResponse)
+	Locales() (*LocalesResponse, *ErrorResponse)
+	Currencies() (*CurrenciesResponse, *ErrorResponse)
+	Markets(locale string) (*MarketsResponse, *ErrorResponse)
+	NearestCulture(ip string) (*NearestCultureResponse, *ErrorResponse)
 }
 
 // Price object

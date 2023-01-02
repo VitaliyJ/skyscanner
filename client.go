@@ -3,8 +3,7 @@ package skyscanner
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
-	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -31,170 +30,140 @@ func NewClient(cfg *Config) Client {
 }
 
 // Create does a create request
-func (c client) Create(req *CreateRequest) (*CreatePollResponse, error) {
+func (c client) Create(req *CreateRequest) (*CreatePollResponse, *ErrorResponse) {
 	jsonData, err := json.Marshal(req)
 	if err != nil {
-		return nil, err
+		return nil, internalErrorResponse("request marshalling error: " + err.Error())
 	}
 
-	r, err := c.do("POST", "/flights/live/search/create", jsonData)
+	r, err := c.do(http.MethodPost, "/flights/live/search/create", jsonData)
 	if err != nil {
-		return nil, err
+		return nil, internalErrorResponse("request doing error: " + err.Error())
 	}
 	defer func() {
 		_ = r.Body.Close()
 	}()
 
 	if r.StatusCode != http.StatusOK {
-		var errREsp ErrorResponse
-		if err := json.NewDecoder(r.Body).Decode(&errREsp); err != nil {
-			return nil, badResponseStatus("create", err, r)
-		}
-
-		return nil, errors.New(errREsp.Message)
+		return nil, badResponseStatus(r)
 	}
 
 	var resp CreatePollResponse
 	if err := json.NewDecoder(r.Body).Decode(&resp); err != nil {
-		return nil, err
+		return nil, internalErrorResponse("response decoding error: " + err.Error())
 	}
 
 	return &resp, nil
 }
 
 // Poll does a poll request
-func (c client) Poll(req *PollRequest) (*CreatePollResponse, error) {
+func (c client) Poll(req *PollRequest) (*CreatePollResponse, *ErrorResponse) {
 	uri := "/flights/live/search/poll/" + req.SessionToken
-	r, err := c.do("POST", uri, []byte{})
+	r, err := c.do(http.MethodPost, uri, []byte{})
 	if err != nil {
-		return nil, err
+		return nil, internalErrorResponse("request doing error: " + err.Error())
 	}
 	defer func() {
 		_ = r.Body.Close()
 	}()
 
 	if r.StatusCode != http.StatusOK {
-		var errREsp ErrorResponse
-		if err := json.NewDecoder(r.Body).Decode(&errREsp); err != nil {
-			return nil, badResponseStatus("poll", err, r)
-		}
-
-		return nil, errors.New(errREsp.Message)
+		return nil, badResponseStatus(r)
 	}
 
 	var resp CreatePollResponse
 	if err := json.NewDecoder(r.Body).Decode(&resp); err != nil {
-		return nil, err
+		return nil, internalErrorResponse("response decoding error: " + err.Error())
 	}
 
 	return &resp, nil
 }
 
 // Locales retrieves the locales that we support to translate your content
-func (c client) Locales() (*LocalesResponse, error) {
-	r, err := c.do("GET", "/culture/locales", []byte{})
+func (c client) Locales() (*LocalesResponse, *ErrorResponse) {
+	r, err := c.do(http.MethodGet, "/culture/locales", []byte{})
 	if err != nil {
-		return nil, err
+		return nil, internalErrorResponse("request doing error: " + err.Error())
 	}
 	defer func() {
 		_ = r.Body.Close()
 	}()
 
 	if r.StatusCode != http.StatusOK {
-		var errREsp ErrorResponse
-		if err := json.NewDecoder(r.Body).Decode(&errREsp); err != nil {
-			return nil, badResponseStatus("locales", err, r)
-		}
-
-		return nil, errors.New(errREsp.Message)
+		return nil, badResponseStatus(r)
 	}
 
 	var resp LocalesResponse
 	if err := json.NewDecoder(r.Body).Decode(&resp); err != nil {
-		return nil, err
+		return nil, internalErrorResponse("response decoding error: " + err.Error())
 	}
 
 	return &resp, nil
 }
 
 // Currencies retrieves the currencies that Skyscanner support and information about format
-func (c client) Currencies() (*CurrenciesResponse, error) {
-	r, err := c.do("GET", "/culture/currencies", []byte{})
+func (c client) Currencies() (*CurrenciesResponse, *ErrorResponse) {
+	r, err := c.do(http.MethodGet, "/culture/currencies", []byte{})
 	if err != nil {
-		return nil, err
+		return nil, internalErrorResponse("request doing error: " + err.Error())
 	}
 	defer func() {
 		_ = r.Body.Close()
 	}()
 
 	if r.StatusCode != http.StatusOK {
-		var errREsp ErrorResponse
-		if err := json.NewDecoder(r.Body).Decode(&errREsp); err != nil {
-			return nil, badResponseStatus("poll", err, r)
-		}
-
-		return nil, errors.New(errREsp.Message)
+		return nil, badResponseStatus(r)
 	}
 
 	var resp CurrenciesResponse
 	if err := json.NewDecoder(r.Body).Decode(&resp); err != nil {
-		return nil, err
+		return nil, internalErrorResponse("response decoding error: " + err.Error())
 	}
 
 	return &resp, nil
 }
 
 // Markets retrieves the market countries that we support
-func (c client) Markets(locale string) (*MarketsResponse, error) {
+func (c client) Markets(locale string) (*MarketsResponse, *ErrorResponse) {
 	uri := "/culture/markets/" + locale
-	r, err := c.do("GET", uri, []byte{})
+	r, err := c.do(http.MethodGet, uri, []byte{})
 	if err != nil {
-		return nil, err
+		return nil, internalErrorResponse("request doing error: " + err.Error())
 	}
 	defer func() {
 		_ = r.Body.Close()
 	}()
 
 	if r.StatusCode != http.StatusOK {
-		var errREsp ErrorResponse
-		if err := json.NewDecoder(r.Body).Decode(&errREsp); err != nil {
-			return nil, badResponseStatus("poll", err, r)
-		}
-
-		return nil, errors.New(errREsp.Message)
+		return nil, badResponseStatus(r)
 	}
 
 	var resp MarketsResponse
 	if err := json.NewDecoder(r.Body).Decode(&resp); err != nil {
-		return nil, err
+		return nil, internalErrorResponse("response decoding error: " + err.Error())
 	}
 
 	return &resp, nil
 }
 
 // NearestCulture retrieves the most relevant culture information for a user, based on an IP address
-func (c client) NearestCulture(ip string) (*NearestCultureResponse, error) {
+func (c client) NearestCulture(ip string) (*NearestCultureResponse, *ErrorResponse) {
 	uri := "/culture/nearestculture?ipAddress=" + ip
-	r, err := c.do("GET", uri, []byte{})
+	r, err := c.do(http.MethodGet, uri, []byte{})
 	if err != nil {
-		return nil, err
+		return nil, internalErrorResponse("request doing error: " + err.Error())
 	}
 	defer func() {
 		_ = r.Body.Close()
 	}()
 
 	if r.StatusCode != http.StatusOK {
-		var errREsp ErrorResponse
-		if err := json.NewDecoder(r.Body).Decode(&errREsp); err != nil {
-			return nil, badResponseStatus("nearestculture", err, r)
-		}
-
-		return nil, errors.New(errREsp.Message)
+		return nil, badResponseStatus(r)
 	}
 
 	var resp NearestCultureResponse
 	if err := json.NewDecoder(r.Body).Decode(&resp); err != nil {
-		return nil, err
+		return nil, internalErrorResponse("response decoding error: " + err.Error())
 	}
 
 	return &resp, nil
@@ -207,6 +176,7 @@ func (c client) do(method, uri string, body []byte) (*http.Response, error) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set(AuthHeader, c.cfg.APIKey)
+	req.Close = true
 
 	httpClient := http.Client{Timeout: c.cfg.QueriesTimeout}
 	res, err := httpClient.Do(req)
@@ -226,11 +196,27 @@ func (c client) getURL(uri string) string {
 	return b.String()
 }
 
-func badResponseStatus(action string, err error, resp *http.Response) error {
-	var fullRes map[string]any
-	if err := json.NewDecoder(resp.Body).Decode(&fullRes); err != nil {
-		return err
+func internalErrorResponse(msg string) *ErrorResponse {
+	return &ErrorResponse{
+		Code:    http.StatusInternalServerError,
+		Message: msg,
+	}
+}
+
+func badResponseStatus(resp *http.Response) *ErrorResponse {
+	errResp := &ErrorResponse{}
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		errResp.Code = resp.StatusCode
+		errResp.Message = "response reading error:" + err.Error()
+		return errResp
 	}
 
-	return fmt.Errorf("action: %s; status: %d; error: %s; full response: %+v", action, resp.StatusCode, err, fullRes)
+	if err := json.Unmarshal(b, &errResp); err != nil {
+		errResp.Code = resp.StatusCode
+		errResp.Message = string(b)
+		return errResp
+	}
+
+	return errResp
 }

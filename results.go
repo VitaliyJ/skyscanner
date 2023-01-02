@@ -2,7 +2,7 @@ package skyscanner
 
 // ErrorResponse contains error response data
 type ErrorResponse struct {
-	Code    int32  `json:"code"`
+	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 
