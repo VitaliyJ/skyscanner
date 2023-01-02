@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -44,10 +45,10 @@ func (c client) Create(req *CreateRequest) (*CreatePollResponse, error) {
 		_ = r.Body.Close()
 	}()
 
-	if r.StatusCode != 200 {
+	if r.StatusCode != http.StatusOK {
 		var errREsp ErrorResponse
 		if err := json.NewDecoder(r.Body).Decode(&errREsp); err != nil {
-			return nil, err
+			return nil, badResponseStatus("create", err, r)
 		}
 
 		return nil, errors.New(errREsp.Message)
@@ -72,10 +73,10 @@ func (c client) Poll(req *PollRequest) (*CreatePollResponse, error) {
 		_ = r.Body.Close()
 	}()
 
-	if r.StatusCode != 200 {
+	if r.StatusCode != http.StatusOK {
 		var errREsp ErrorResponse
 		if err := json.NewDecoder(r.Body).Decode(&errREsp); err != nil {
-			return nil, err
+			return nil, badResponseStatus("poll", err, r)
 		}
 
 		return nil, errors.New(errREsp.Message)
@@ -99,10 +100,10 @@ func (c client) Locales() (*LocalesResponse, error) {
 		_ = r.Body.Close()
 	}()
 
-	if r.StatusCode != 200 {
+	if r.StatusCode != http.StatusOK {
 		var errREsp ErrorResponse
 		if err := json.NewDecoder(r.Body).Decode(&errREsp); err != nil {
-			return nil, err
+			return nil, badResponseStatus("locales", err, r)
 		}
 
 		return nil, errors.New(errREsp.Message)
@@ -126,10 +127,10 @@ func (c client) Currencies() (*CurrenciesResponse, error) {
 		_ = r.Body.Close()
 	}()
 
-	if r.StatusCode != 200 {
+	if r.StatusCode != http.StatusOK {
 		var errREsp ErrorResponse
 		if err := json.NewDecoder(r.Body).Decode(&errREsp); err != nil {
-			return nil, err
+			return nil, badResponseStatus("poll", err, r)
 		}
 
 		return nil, errors.New(errREsp.Message)
@@ -154,10 +155,10 @@ func (c client) Markets(locale string) (*MarketsResponse, error) {
 		_ = r.Body.Close()
 	}()
 
-	if r.StatusCode != 200 {
+	if r.StatusCode != http.StatusOK {
 		var errREsp ErrorResponse
 		if err := json.NewDecoder(r.Body).Decode(&errREsp); err != nil {
-			return nil, err
+			return nil, badResponseStatus("poll", err, r)
 		}
 
 		return nil, errors.New(errREsp.Message)
@@ -182,10 +183,10 @@ func (c client) NearestCulture(ip string) (*NearestCultureResponse, error) {
 		_ = r.Body.Close()
 	}()
 
-	if r.StatusCode != 200 {
+	if r.StatusCode != http.StatusOK {
 		var errREsp ErrorResponse
 		if err := json.NewDecoder(r.Body).Decode(&errREsp); err != nil {
-			return nil, err
+			return nil, badResponseStatus("nearestculture", err, r)
 		}
 
 		return nil, errors.New(errREsp.Message)
@@ -223,4 +224,13 @@ func (c client) getURL(uri string) string {
 	b.WriteString(strings.TrimLeft(uri, "/"))
 
 	return b.String()
+}
+
+func badResponseStatus(action string, err error, resp *http.Response) error {
+	var fullRes map[string]any
+	if err := json.NewDecoder(resp.Body).Decode(&fullRes); err != nil {
+		return err
+	}
+
+	return fmt.Errorf("action: %s; status: %d; error: %s; full response: %+v", action, resp.StatusCode, err, fullRes)
 }
