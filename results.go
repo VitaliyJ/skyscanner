@@ -89,8 +89,8 @@ type Segment struct {
 	ArrivalDateTime       LocalDatetime `json:"arrivalDateTime"`
 	DurationInMinutes     int32         `json:"durationInMinutes"`
 	MarketingFlightNumber string        `json:"marketingFlightNumber"`
-	MarketingCarrierIds   []string      `json:"marketingCarrierIds"`
-	OperatingCarrierIds   []string      `json:"operatingCarrierIds"`
+	MarketingCarrierId    string        `json:"marketingCarrierId"`
+	OperatingCarrierId    string        `json:"operatingCarrierId"`
 }
 
 // Place contains the place details
