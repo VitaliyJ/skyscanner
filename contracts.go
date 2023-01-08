@@ -93,6 +93,10 @@ type LocalDatetime struct {
 }
 
 func (p Price) ToFloat() (float64, error) {
+	if p.Amount == "" {
+		return 0, nil
+	}
+
 	a, err := strconv.Atoi(p.Amount)
 	if err != nil {
 		return 0, err
