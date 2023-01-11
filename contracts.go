@@ -68,6 +68,7 @@ type Client interface {
 	Currencies() (*CurrenciesResponse, *ErrorResponse)
 	Markets(locale string) (*MarketsResponse, *ErrorResponse)
 	NearestCulture(ip string) (*NearestCultureResponse, *ErrorResponse)
+	AutoSuggestFlights(req *AutoSuggestFlightsRequest) (*AutoSuggestFlightsResponse, *ErrorResponse)
 }
 
 // Price object
