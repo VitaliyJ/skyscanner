@@ -51,7 +51,7 @@ type AutoSuggestFlightsRequest struct {
 	// Query Object containing query parameters for flight autosuggest search.
 	Query AutoSuggestFlightsRequestQuery `json:"query"`
 	// Limit Limits number of entities returned in response. Takes a minimum value of 1 and a maximum of 50.
-	Limit AutoSuggestFlightsRequestLimit `json:"limit"`
+	Limit int32 `json:"limit,omitempty"`
 	// IsDestination Alters ranking logic of entities.
 	IsDestination bool `json:"isDestination"`
 }
@@ -66,12 +66,5 @@ type AutoSuggestFlightsRequestQuery struct {
 	SearchTerm string `json:"searchTerm"`
 	// IncludedEntityTypes Items Enum: "PLACE_TYPE_AIRPORT" "PLACE_TYPE_CITY" "PLACE_TYPE_COUNTRY"
 	// List of entity types to be returned. If empty, all entity types will be returned
-	IncludedEntityTypes []PlaceType `json:"includedEntityTypes"`
-}
-
-// AutoSuggestFlightsRequestLimit contains autosuggest/flights request limit data
-type AutoSuggestFlightsRequestLimit struct {
-	Empty   bool  `json:"empty"`
-	Present bool  `json:"present"`
-	AsInt   int32 `json:"asInt"`
+	IncludedEntityTypes []PlaceType `json:"includedEntityTypes,omitempty"`
 }
