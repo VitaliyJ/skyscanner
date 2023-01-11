@@ -192,3 +192,42 @@ type NearestCultureResponse struct {
 	Locale   Locale         `json:"locale"`
 	Currency Currency       `json:"currency"`
 }
+
+// AutoSuggestFlightsResponse contains autosuggest/flights response data
+type AutoSuggestFlightsResponse struct {
+	Places []*AutoSuggestPlace `json:"places"`
+}
+
+// AutoSuggestPlace contains autosuggest place data
+type AutoSuggestPlace struct {
+	EntityId           string             `json:"entityId"`
+	IATACode           string             `json:"iataCode"`
+	ParentID           string             `json:"parentId"`
+	Name               string             `json:"name"`
+	CountryID          string             `json:"countryId"`
+	CountryName        string             `json:"countryName"`
+	CityName           string             `json:"cityName"`
+	Location           string             `json:"location"`
+	Hierarchy          string             `json:"hierarchy"`
+	Type               PlaceType          `json:"type"`
+	Highlighting       [][]int32          `json:"highlighting"`
+	AirportInformation AirportInformation `json:"airportInformation"`
+}
+
+// AirportInformation contains airport information
+type AirportInformation struct {
+	IATACode  string   `json:"iataCode"`
+	Name      string   `json:"name"`
+	CountryID string   `json:"countryId"`
+	CityID    string   `json:"cityId"`
+	EntityId  string   `json:"entityId"`
+	ParentID  string   `json:"parentId"`
+	Distance  Distance `json:"distance"`
+	Location  string   `json:"location"`
+}
+
+// Distance contains distance data
+type Distance struct {
+	Value    float32 `json:"value"`
+	UnitCode string  `json:"unitCode"`
+}

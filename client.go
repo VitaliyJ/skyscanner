@@ -169,6 +169,33 @@ func (c client) NearestCulture(ip string) (*NearestCultureResponse, *ErrorRespon
 	return &resp, nil
 }
 
+// AutoSuggestFlights returns a list of places that match a specified searchTerm
+func (c client) AutoSuggestFlights(req *AutoSuggestFlightsRequest) (*AutoSuggestFlightsResponse, *ErrorResponse) {
+	jsonData, err := json.Marshal(req)
+	if err != nil {
+		return nil, internalErrorResponse("request marshalling error: " + err.Error())
+	}
+
+	r, err := c.do(http.MethodPost, "/autosuggest/flights", jsonData)
+	if err != nil {
+		return nil, internalErrorResponse("request doing error: " + err.Error())
+	}
+	defer func() {
+		_ = r.Body.Close()
+	}()
+
+	if r.StatusCode != http.StatusOK {
+		return nil, badResponseStatus(r)
+	}
+
+	var resp AutoSuggestFlightsResponse
+	if err := json.NewDecoder(r.Body).Decode(&resp); err != nil {
+		return nil, internalErrorResponse("response decoding error: " + err.Error())
+	}
+
+	return &resp, nil
+}
+
 func (c client) do(method, uri string, body []byte) (*http.Response, error) {
 	req, err := http.NewRequest(method, c.getURL(uri), bytes.NewBuffer(body))
 	if err != nil {

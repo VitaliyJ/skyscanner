@@ -45,3 +45,33 @@ type PlaceID struct {
 type PollRequest struct {
 	SessionToken string `json:"sessionToken"`
 }
+
+// AutoSuggestFlightsRequest contains autosuggest/flights request data
+type AutoSuggestFlightsRequest struct {
+	// Query Object containing query parameters for flight autosuggest search.
+	Query AutoSuggestFlightsRequestQuery `json:"query"`
+	// Limit Limits number of entities returned in response. Takes a minimum value of 1 and a maximum of 50.
+	Limit AutoSuggestFlightsRequestLimit `json:"limit"`
+	// IsDestination Alters ranking logic of entities.
+	IsDestination bool `json:"isDestination"`
+}
+
+// AutoSuggestFlightsRequestQuery contains autosuggest/flights request query data
+type AutoSuggestFlightsRequestQuery struct {
+	// Locale that the results are returned in. e.g. en-GB
+	Locale string `json:"locale"`
+	// Market for which the search is for. e.g. UK
+	Market string `json:"market"`
+	// SearchTerm Term to get autosuggest results for. Omitting the searchTerm will return the most popular destinations.
+	SearchTerm string `json:"searchTerm"`
+	// IncludedEntityTypes Items Enum: "PLACE_TYPE_AIRPORT" "PLACE_TYPE_CITY" "PLACE_TYPE_COUNTRY"
+	// List of entity types to be returned. If empty, all entity types will be returned
+	IncludedEntityTypes []PlaceType `json:"includedEntityTypes"`
+}
+
+// AutoSuggestFlightsRequestLimit contains autosuggest/flights request limit data
+type AutoSuggestFlightsRequestLimit struct {
+	Empty   bool  `json:"empty"`
+	Present bool  `json:"present"`
+	AsInt   int32 `json:"asInt"`
+}
