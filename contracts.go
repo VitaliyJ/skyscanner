@@ -1,6 +1,9 @@
 package skyscanner
 
-import "strconv"
+import (
+	"context"
+	"strconv"
+)
 
 const (
 	CabinClassUnspecified    CabinClass = "CABIN_CLASS_UNSPECIFIED"
@@ -62,13 +65,13 @@ type AgentType string
 
 // Client is a SkyScanner client interface
 type Client interface {
-	Create(req *CreateRequest) (*CreatePollResponse, *ErrorResponse)
-	Poll(req *PollRequest) (*CreatePollResponse, *ErrorResponse)
-	Locales() (*LocalesResponse, *ErrorResponse)
-	Currencies() (*CurrenciesResponse, *ErrorResponse)
-	Markets(locale string) (*MarketsResponse, *ErrorResponse)
-	NearestCulture(ip string) (*NearestCultureResponse, *ErrorResponse)
-	AutoSuggestFlights(req *AutoSuggestFlightsRequest) (*AutoSuggestFlightsResponse, *ErrorResponse)
+	Create(ctx context.Context, req *CreateRequest) (*CreatePollResponse, *ErrorResponse)
+	Poll(ctx context.Context, req *PollRequest) (*CreatePollResponse, *ErrorResponse)
+	Locales(ctx context.Context) (*LocalesResponse, *ErrorResponse)
+	Currencies(ctx context.Context) (*CurrenciesResponse, *ErrorResponse)
+	Markets(ctx context.Context, locale string) (*MarketsResponse, *ErrorResponse)
+	NearestCulture(ctx context.Context, ip string) (*NearestCultureResponse, *ErrorResponse)
+	AutoSuggestFlights(ctx context.Context, req *AutoSuggestFlightsRequest) (*AutoSuggestFlightsResponse, *ErrorResponse)
 }
 
 // Price object

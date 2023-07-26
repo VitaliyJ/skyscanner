@@ -2,6 +2,7 @@ package skyscanner
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -30,13 +31,13 @@ func NewClient(cfg *Config) Client {
 }
 
 // Create does a create request
-func (c client) Create(req *CreateRequest) (*CreatePollResponse, *ErrorResponse) {
+func (c client) Create(ctx context.Context, req *CreateRequest) (*CreatePollResponse, *ErrorResponse) {
 	jsonData, err := json.Marshal(req)
 	if err != nil {
 		return nil, internalErrorResponse("request marshalling error: " + err.Error())
 	}
 
-	r, err := c.do(http.MethodPost, "/flights/live/search/create", jsonData)
+	r, err := c.do(ctx, http.MethodPost, "/flights/live/search/create", jsonData)
 	if err != nil {
 		return nil, internalErrorResponse("request doing error: " + err.Error())
 	}
@@ -57,9 +58,9 @@ func (c client) Create(req *CreateRequest) (*CreatePollResponse, *ErrorResponse)
 }
 
 // Poll does a poll request
-func (c client) Poll(req *PollRequest) (*CreatePollResponse, *ErrorResponse) {
+func (c client) Poll(ctx context.Context, req *PollRequest) (*CreatePollResponse, *ErrorResponse) {
 	uri := "/flights/live/search/poll/" + req.SessionToken
-	r, err := c.do(http.MethodPost, uri, []byte{})
+	r, err := c.do(ctx, http.MethodPost, uri, []byte{})
 	if err != nil {
 		return nil, internalErrorResponse("request doing error: " + err.Error())
 	}
@@ -80,8 +81,8 @@ func (c client) Poll(req *PollRequest) (*CreatePollResponse, *ErrorResponse) {
 }
 
 // Locales retrieves the locales that we support to translate your content
-func (c client) Locales() (*LocalesResponse, *ErrorResponse) {
-	r, err := c.do(http.MethodGet, "/culture/locales", []byte{})
+func (c client) Locales(ctx context.Context) (*LocalesResponse, *ErrorResponse) {
+	r, err := c.do(ctx, http.MethodGet, "/culture/locales", []byte{})
 	if err != nil {
 		return nil, internalErrorResponse("request doing error: " + err.Error())
 	}
@@ -102,8 +103,8 @@ func (c client) Locales() (*LocalesResponse, *ErrorResponse) {
 }
 
 // Currencies retrieves the currencies that Skyscanner support and information about format
-func (c client) Currencies() (*CurrenciesResponse, *ErrorResponse) {
-	r, err := c.do(http.MethodGet, "/culture/currencies", []byte{})
+func (c client) Currencies(ctx context.Context) (*CurrenciesResponse, *ErrorResponse) {
+	r, err := c.do(ctx, http.MethodGet, "/culture/currencies", []byte{})
 	if err != nil {
 		return nil, internalErrorResponse("request doing error: " + err.Error())
 	}
@@ -124,9 +125,9 @@ func (c client) Currencies() (*CurrenciesResponse, *ErrorResponse) {
 }
 
 // Markets retrieves the market countries that we support
-func (c client) Markets(locale string) (*MarketsResponse, *ErrorResponse) {
+func (c client) Markets(ctx context.Context, locale string) (*MarketsResponse, *ErrorResponse) {
 	uri := "/culture/markets/" + locale
-	r, err := c.do(http.MethodGet, uri, []byte{})
+	r, err := c.do(ctx, http.MethodGet, uri, []byte{})
 	if err != nil {
 		return nil, internalErrorResponse("request doing error: " + err.Error())
 	}
@@ -147,9 +148,9 @@ func (c client) Markets(locale string) (*MarketsResponse, *ErrorResponse) {
 }
 
 // NearestCulture retrieves the most relevant culture information for a user, based on an IP address
-func (c client) NearestCulture(ip string) (*NearestCultureResponse, *ErrorResponse) {
+func (c client) NearestCulture(ctx context.Context, ip string) (*NearestCultureResponse, *ErrorResponse) {
 	uri := "/culture/nearestculture?ipAddress=" + ip
-	r, err := c.do(http.MethodGet, uri, []byte{})
+	r, err := c.do(ctx, http.MethodGet, uri, []byte{})
 	if err != nil {
 		return nil, internalErrorResponse("request doing error: " + err.Error())
 	}
@@ -170,13 +171,13 @@ func (c client) NearestCulture(ip string) (*NearestCultureResponse, *ErrorRespon
 }
 
 // AutoSuggestFlights returns a list of places that match a specified searchTerm
-func (c client) AutoSuggestFlights(req *AutoSuggestFlightsRequest) (*AutoSuggestFlightsResponse, *ErrorResponse) {
+func (c client) AutoSuggestFlights(ctx context.Context, req *AutoSuggestFlightsRequest) (*AutoSuggestFlightsResponse, *ErrorResponse) {
 	jsonData, err := json.Marshal(req)
 	if err != nil {
 		return nil, internalErrorResponse("request marshalling error: " + err.Error())
 	}
 
-	r, err := c.do(http.MethodPost, "/autosuggest/flights", jsonData)
+	r, err := c.do(ctx, http.MethodPost, "/autosuggest/flights", jsonData)
 	if err != nil {
 		return nil, internalErrorResponse("request doing error: " + err.Error())
 	}
@@ -196,8 +197,8 @@ func (c client) AutoSuggestFlights(req *AutoSuggestFlightsRequest) (*AutoSuggest
 	return &resp, nil
 }
 
-func (c client) do(method, uri string, body []byte) (*http.Response, error) {
-	req, err := http.NewRequest(method, c.getURL(uri), bytes.NewBuffer(body))
+func (c client) do(ctx context.Context, method, uri string, body []byte) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, method, c.getURL(uri), bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
